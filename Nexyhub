@@ -1,0 +1,371 @@
+--========================================================
+-- PREMIUM INTRO
+--========================================================
+task.spawn(function()
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "NexyIntro"
+    gui.ResetOnSpawn = false
+    pcall(function() gui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui") end)
+
+    local frame = Instance.new("Frame", gui)
+    frame.Size = UDim2.fromScale(1,1)
+    frame.BackgroundColor3 = Color3.new(1,1,1)
+    frame.BackgroundTransparency = 1
+
+    local title = Instance.new("TextLabel", frame)
+    title.Size = UDim2.new(1,0,0,80)
+    title.Position = UDim2.new(0,0,0.42,0)
+    title.BackgroundTransparency = 1
+    title.Text = ""
+    title.Font = Enum.Font.GothamBlack
+    title.TextScaled = true
+    title.TextColor3 = Color3.fromRGB(255,255,255)
+
+    task.spawn(function()
+        local txt = "NEXYHUBB"
+        for i = 1, #txt do
+            title.Text = txt:sub(1,i)
+            task.wait(0.8)
+        end
+    end)
+
+    local TweenService = game:GetService("TweenService")
+    local stroke = Instance.new("UIStroke", title)
+    stroke.Color = Color3.fromRGB(255,255,255)
+    stroke.Thickness = 2
+
+    local ring = Instance.new("Frame", frame)
+    ring.AnchorPoint = Vector2.new(0.5,0.5)
+    ring.Position = UDim2.fromScale(0.5,0.5)
+    ring.Size = UDim2.fromOffset(260,260)
+    ring.BackgroundTransparency = 1
+    local corner=Instance.new("UICorner",ring)
+    corner.CornerRadius=UDim.new(1,0)
+    local rs=Instance.new("UIStroke",ring)
+    rs.Thickness=3
+    rs.Color=Color3.fromRGB(255,255,255)
+
+    TweenService:Create(ring,TweenInfo.new(1.2,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut,-1,true),{Rotation=360,Size=UDim2.fromOffset(320,320)}):Play()
+    TweenService:Create(title,TweenInfo.new(0.8,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut,-1,true),{TextTransparency=0.1}):Play()
+
+    -- NexyOnTop orbit
+    local orbit = Instance.new("Frame", frame)
+    orbit.AnchorPoint = Vector2.new(0.5,0.5)
+    orbit.Position = UDim2.fromScale(0.5,0.5)
+    orbit.Size = UDim2.fromOffset(420,420)
+    orbit.BackgroundTransparency = 1
+
+    for i=1,5 do
+        local t=Instance.new("TextLabel",orbit)
+        t.BackgroundTransparency=1
+        t.Size=UDim2.fromOffset(90,24)
+        t.AnchorPoint=Vector2.new(0.5,0.5)
+        local a=((i-1)/5)*math.pi*2
+        t.Position=UDim2.new(0.5+math.cos(a)*0.42,0,0.5+math.sin(a)*0.42,0)
+        t.Text="NexyOnTop"
+        t.TextScaled=true
+        t.Font=Enum.Font.GothamBold
+        t.TextColor3=Color3.fromRGB(255,255,255)
+        local s=Instance.new("UIStroke",t)
+        s.Thickness=1.5
+    end
+    TweenService:Create(orbit,TweenInfo.new(14,Enum.EasingStyle.Linear,Enum.EasingDirection.InOut,-1),{Rotation=360}):Play()
+
+    -- Sparkles
+    for i=1,35 do
+        local star=Instance.new("Frame",frame)
+        star.BorderSizePixel=0
+        star.AnchorPoint=Vector2.new(0.5,0.5)
+        local sz=math.random(2,5)
+        star.Size=UDim2.fromOffset(sz,sz)
+        star.Position=UDim2.new(math.random(),0,math.random(),0)
+        star.BackgroundColor3=Color3.new(1,1,1)
+        local c=Instance.new("UICorner",star)
+        c.CornerRadius=UDim.new(1,0)
+        TweenService:Create(star,TweenInfo.new(math.random(8,18)/10,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut,-1,true),{BackgroundTransparency=0.8,Size=UDim2.fromOffset(sz+2,sz+2)}):Play()
+    end
+
+    local sound = Instance.new("Sound", gui)
+    sound.SoundId = "rbxassetid://9118823105"
+    sound.Volume = 0.25
+    pcall(function() sound:Play() end)
+
+    task.wait(8)
+    _G.NEXY_INTRO_DONE = true
+    gui:Destroy()
+end)
+
+-- Leaked by Sami 
+-- https://discord.gg/hMDR2ZVhu
+-- ============================================================
+-- NEXYHUBB - SCRIPT COMPLETO MEJORADO
+-- ============================================================
+
+repeat task.wait() until game:IsLoaded()
+repeat task.wait() until _G.NEXY_INTRO_DONE == true
+
+local Players, RunService, UIS, TS, Lighting, HS = game:GetService("Players"), game:GetService("RunService"), game:GetService("UserInputService"), game:GetService("TweenService"), game:GetService("Lighting"), game:GetService("HttpService")
+local LP = Players.LocalPlayer
+
+local NS, CS = 60, 30
+local LAGGER_SPEED = 15
+local LAGGER_CARRY_SPEED = 24.5
+local speedMode, antiRagdollEnabled, infJumpEnabled = false, false, false
+local laggerToggled = false
+local laggerCarryToggled = false
+local laggerPhase = 0
+local medusaCounterEnabled = false
+local medusaResetEnabled = false
+local batCounterEnabled = false
+local unwalkEnabled = false
+local medusaDebounce, medusaLastUsed, dropActive = false, 0, false
+local autoLeftEnabled, autoRightEnabled = false, false
+local autoLeftSetVisual, autoRightSetVisual = nil, nil
+local tpLockEnabled = false
+local tpLockSetVisual = nil
+local batV2Enabled = false
+local batV2SetVisual = nil
+local setBatCounterVisual = nil
+local startBatCounter, stopBatCounter
+local antiLagEnabled = false
+local removeAccessoriesEnabled = false
+local antiLagDescConn = nil
+local stretchRezEnabled = false
+local stretchRezConn = nil
+local setStretchRezVisual = nil
+local espEnabled = false
+
+-- Configuración ESP
+local espBoxBaseWidth = 70
+local espBoxBaseHeight = 100
+local espScaleFactor = 25
+local espMinScale = 0.4
+local espMaxScale = 1.6
+
+local antiKickEnabled = false
+local antiKickSetVisual = nil
+local brainrotDetected = false
+local _antiKickConns = {}
+local _oldFire = nil
+
+local unwalkSavedAnimate = nil
+local _anyKeyListening = false
+local _lastKbSet = 0
+local autoTPEnabled = false
+local autoTPHeight = 20
+local autoTPConn = nil
+local setAutoTPVisual = nil
+local cursedResetRemote = nil
+local CURSED_RESET_GUID = "f888ee6e-c86d-46e1-93d7-0639d6635d42"
+local setInfJumpVisual = nil
+local mainFrame = nil
+local bgImage = nil
+local progressFill = nil
+local progressPct = nil
+local stealBarFrame = nil
+local _guiLocked = false
+
+-- COLOR GLOBAL
+local PURPLE = Color3.fromRGB(255,255,255)
+local PURPLE_LIGHT = Color3.fromRGB(255,255,255)
+local PURPLE_DARK = Color3.fromRGB(255,255,255)
+local PURPLE_GLOW = Color3.fromRGB(200,200,200)
+
+setCarryVisual = nil
+setLaggerVisual = nil
+setAutoSwingVisual = nil
+setBatCounterVisual = nil
+setAntiRagVisual = nil
+setMedusaVisual = nil
+setMedusaResetVisual = nil
+setUnwalkVisual = nil
+setAntiLagVisual = nil
+setStretchRezVisual = nil
+setAutoTPVisual = nil
+setSaturationVisual = nil
+setVoidModeVisual = nil
+setStretchRezV2Visual = nil
+setAntiKickVisual = nil
+setTranspVisual = nil
+setLockVisual = nil
+setMobVisual = nil
+setCircleBtnsVisual = nil
+setShapeVisual = nil
+setRectVisual = nil
+setInstaGrab = nil
+setInfJumpVisual = nil
+setEspVisual = nil
+local startESP, stopESP
+
+local uiScaleValue = 0.6
+local uiScaleObject = nil
+
+local TOGGLE_ON_COLOR = PURPLE
+local TOGGLE_OFF_COLOR = Color3.fromRGB(255,255,255)
+
+local tpLockConn = nil
+local tpLockPrevAutoRotate = nil
+local tpLockHitCD = false
+local TP_LOCK_SWING_CD = 0.08
+
+-- ESP Module
+do
+    local _espEnabled  = false
+    local _espConn     = nil
+    local _espLastRun  = 0
+    local _hlCache     = {}
+    local _bbCache     = {}
+    local _trCache     = {}
+
+    local function clearESP()
+        for _, hl in pairs(_hlCache) do pcall(function() hl:Destroy() end) end
+        _hlCache = {}
+        for _, bb in pairs(_bbCache) do pcall(function() bb:Destroy() end) end
+        _bbCache = {}
+        for _, lines in pairs(_trCache) do
+            for _, ln in ipairs(lines) do
+                pcall(function() ln.Visible = false; ln:Remove() end)
+            end
+        end
+        _trCache = {}
+    end
+
+    local function _espMakeBillboard(head)
+        local bb = Instance.new("BillboardGui")
+        bb.Name        = "NexyHubbESPBB"
+        bb.Size        = UDim2.new(0, 110, 0, 18)
+        bb.StudsOffset = Vector3.new(0, 4.5, 0)
+        bb.AlwaysOnTop = true
+        bb.LightInfluence = 0
+        bb.Adornee     = head
+        bb.Parent      = head
+        local lbl = Instance.new("TextLabel", bb)
+        lbl.Size                   = UDim2.new(1, 0, 1, 0)
+        lbl.BackgroundTransparency = 1
+        lbl.Font                   = Enum.Font.GothamBold
+        lbl.TextSize               = 11
+        lbl.TextColor3             = PURPLE
+        lbl.TextStrokeTransparency = 0.3
+        lbl.TextStrokeColor3       = Color3.fromRGB(255,255,255)
+        lbl.TextXAlignment         = Enum.TextXAlignment.Center
+        lbl.TextTruncate           = Enum.TextTruncate.AtEnd
+        return bb, lbl
+    end
+
+    local function _espMakeTracers()
+        if not (Drawing and type(Drawing.new) == "function") then return nil end
+        local outer = Drawing.new("Line")
+        outer.Color        = PURPLE
+        outer.Thickness    = 2.2
+        outer.Transparency = 0.88
+        outer.Visible      = false
+        local mid = Drawing.new("Line")
+        mid.Color        = PURPLE
+        mid.Thickness    = 1.2
+        mid.Transparency = 0.72
+        mid.Visible      = false
+        local core = Drawing.new("Line")
+        core.Color        = PURPLE
+        core.Thickness    = 0.6
+        core.Transparency = 0.10
+        core.Visible      = false
+        return {outer, mid, core}
+    end
+
+    local function _espUpdate()
+        local now = tick()
+        if now - _espLastRun < 0.03 then return end
+        _espLastRun = now
+        if not _espEnabled then clearESP(); return end
+        local myChar = LP.Character
+        local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
+        if not myRoot then return end
+        local cam = workspace.CurrentCamera
+        local mySP, myOn = cam:WorldToViewportPoint(myRoot.Position)
+        local myVec = Vector2.new(mySP.X, mySP.Y)
+        local plrSet = {}
+        for _, p in ipairs(Players:GetPlayers()) do plrSet[p] = true end
+
+        for plr in pairs(_hlCache) do
+            if not plrSet[plr] then pcall(function() _hlCache[plr]:Destroy() end); _hlCache[plr] = nil end
+        end
+        for plr in pairs(_bbCache) do
+            if not plrSet[plr] then pcall(function() _bbCache[plr]:Destroy() end); _bbCache[plr] = nil end
+        end
+        for plr in pairs(_trCache) do
+            if not plrSet[plr] then
+                for _, ln in ipairs(_trCache[plr]) do pcall(function() ln.Visible=false; ln:Remove() end) end
+                _trCache[plr] = nil
+            end
+        end
+
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr == LP then continue end
+            local char = plr.Character
+            if not char then
+                if _hlCache[plr] then pcall(function() _hlCache[plr]:Destroy() end); _hlCache[plr] = nil end
+                if _bbCache[plr] then pcall(function() _bbCache[plr]:Destroy() end); _bbCache[plr] = nil end
+                if _trCache[plr] then for _, ln in ipairs(_trCache[plr]) do pcall(function() ln.Visible=false end) end end
+                continue
+            end
+            local tRoot = char:FindFirstChild("HumanoidRootPart")
+            local tHead = char:FindFirstChild("Head")
+            local tHum  = char:FindFirstChildOfClass("Humanoid")
+            if tRoot and tHead and tHum and tHum.Health > 0 then
+                local hl = _hlCache[plr]
+                if not hl or not hl.Parent or hl.Parent ~= char then
+                    if hl then pcall(function() hl:Destroy() end) end
+                    hl = Instance.new("Highlight")
+                    hl.Name                = "NexyHubbESP"
+                    hl.FillColor           = PURPLE
+                    hl.FillTransparency    = 0.62
+                    hl.OutlineColor        = PURPLE
+                    hl.OutlineTransparency = 0
+                    hl.DepthMode           = Enum.HighlightDepthMode.AlwaysOnTop
+                    hl.Adornee             = char
+                    hl.Parent              = char
+                    _hlCache[plr]          = hl
+                end
+                local bb = _bbCache[plr]
+                if not bb or not bb.Parent or bb.Adornee ~= tHead then
+                    if bb then pcall(function() bb:Destroy() end) end
+                    local newBB, lbl = _espMakeBillboard(tHead)
+                    lbl.Text      = plr.DisplayName
+                    _bbCache[plr] = newBB
+                end
+                local espLines = _trCache[plr]
+                if not espLines then
+                    espLines = _espMakeTracers()
+                    _trCache[plr] = espLines or {}
+                end
+                if espLines and #espLines > 0 then
+                    local sp, on = cam:WorldToViewportPoint(tRoot.Position)
+                    if on and sp.Z > 0 and myOn then
+                        local tv = Vector2.new(sp.X, sp.Y)
+                        for _, ln in ipairs(espLines) do ln.From=myVec; ln.To=tv; ln.Visible=true end
+                    else
+                        for _, ln in ipairs(espLines) do ln.Visible=false end
+                    end
+                end
+            else
+                if _hlCache[plr] then pcall(function() _hlCache[plr]:Destroy() end); _hlCache[plr] = nil end
+                if _bbCache[plr] then pcall(function() _bbCache[plr]:Destroy() end); _bbCache[plr] = nil end
+                if _trCache[plr] then for _, ln in ipairs(_trCache[plr]) do pcall(function() ln.Visible=false end) end end
+            end
+        end
+    end
+
+    startESP = function()
+        if _espEnabled then return end
+        _espEnabled = true
+        if _espConn then _espConn:Disconnect() end
+        _espConn = RunService.RenderStepped:Connect(_espUpdate)
+    end
+
+    stopESP = function()
+        if not _espEnabled then return end
+        _espEnabled = false
+        if _espConn then _espConn:Disconnect(); _espConn = nil end
+        clearESP()
+    end
+end
