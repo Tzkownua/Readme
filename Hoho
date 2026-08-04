@@ -1,0 +1,474 @@
+--========================================================
+-- PREMIUM INTRO (CYAN NEON)
+--========================================================
+task.spawn(function()
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "NexyIntro"
+    gui.ResetOnSpawn = false
+    pcall(function() gui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui") end)
+
+    local frame = Instance.new("Frame", gui)
+    frame.Size = UDim2.fromScale(1,1)
+    frame.BackgroundColor3 = Color3.fromRGB(8, 12, 20)
+    frame.BackgroundTransparency = 0.15
+
+    local title = Instance.new("TextLabel", frame)
+    title.Size = UDim2.new(1,0,0,80)
+    title.Position = UDim2.new(0,0,0.42,0)
+    title.BackgroundTransparency = 1
+    title.Text = ""
+    title.Font = Enum.Font.GothamBlack
+    title.TextScaled = true
+    title.TextColor3 = Color3.fromRGB(0, 210, 255)
+
+    task.spawn(function()
+        local txt = "NEXYHUBB"
+        for i = 1, #txt do
+            title.Text = txt:sub(1,i)
+            task.wait(0.08)
+        end
+    end)
+
+    local TweenService = game:GetService("TweenService")
+    local stroke = Instance.new("UIStroke", title)
+    stroke.Color = Color3.fromRGB(255,255,255)
+    stroke.Thickness = 2
+
+    local ring = Instance.new("Frame", frame)
+    ring.AnchorPoint = Vector2.new(0.5,0.5)
+    ring.Position = UDim2.fromScale(0.5,0.5)
+    ring.Size = UDim2.fromOffset(260,260)
+    ring.BackgroundTransparency = 1
+    local corner = Instance.new("UICorner", ring)
+    corner.CornerRadius = UDim.new(1,0)
+    local rs = Instance.new("UIStroke", ring)
+    rs.Thickness = 3
+    rs.Color = Color3.fromRGB(0, 210, 255)
+
+    TweenService:Create(ring, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {Rotation=360, Size=UDim2.fromOffset(320,320)}):Play()
+    TweenService:Create(title, TweenInfo.new(0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {TextTransparency=0.1}):Play()
+
+    -- Orbit
+    local orbit = Instance.new("Frame", frame)
+    orbit.AnchorPoint = Vector2.new(0.5,0.5)
+    orbit.Position = UDim2.fromScale(0.5,0.5)
+    orbit.Size = UDim2.fromOffset(420,420)
+    orbit.BackgroundTransparency = 1
+
+    for i=1,5 do
+        local t = Instance.new("TextLabel", orbit)
+        t.BackgroundTransparency = 1
+        t.Size = UDim2.fromOffset(90,24)
+        t.AnchorPoint = Vector2.new(0.5,0.5)
+        local a = ((i-1)/5)*math.pi*2
+        t.Position = UDim2.new(0.5+math.cos(a)*0.42, 0, 0.5+math.sin(a)*0.42, 0)
+        t.Text = "NexyOnTop"
+        t.TextScaled = true
+        t.Font = Enum.Font.GothamBold
+        t.TextColor3 = Color3.fromRGB(0, 210, 255)
+        local s = Instance.new("UIStroke", t)
+        s.Thickness = 1.5
+        s.Color = Color3.fromRGB(255, 255, 255)
+    end
+    TweenService:Create(orbit, TweenInfo.new(14, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1), {Rotation=360}):Play()
+
+    -- Sparkles
+    for i=1,35 do
+        local star = Instance.new("Frame", frame)
+        star.BorderSizePixel = 0
+        star.AnchorPoint = Vector2.new(0.5,0.5)
+        local sz = math.random(2,5)
+        star.Size = UDim2.fromOffset(sz,sz)
+        star.Position = UDim2.new(math.random(),0,math.random(),0)
+        star.BackgroundColor3 = Color3.fromRGB(0, 210, 255)
+        local c = Instance.new("UICorner", star)
+        c.CornerRadius = UDim.new(1,0)
+        TweenService:Create(star, TweenInfo.new(math.random(8,18)/10, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {BackgroundTransparency=0.8, Size=UDim2.fromOffset(sz+2,sz+2)}):Play()
+    end
+
+    local sound = Instance.new("Sound", gui)
+    sound.SoundId = "rbxassetid://9118823105"
+    sound.Volume = 0.25
+    pcall(function() sound:Play() end)
+
+    task.wait(2.5)
+    _G.NEXY_INTRO_DONE = true
+    gui:Destroy()
+end)
+
+-- ============================================================
+-- NEXYHUBB - SCRIPT ORIGINAL COMPLET EN CYAN NÉON
+-- ============================================================
+
+repeat task.wait() until game:IsLoaded()
+repeat task.wait() until _G.NEXY_INTRO_DONE == true
+
+local Players, RunService, UIS, TS, Lighting, HS = game:GetService("Players"), game:GetService("RunService"), game:GetService("UserInputService"), game:GetService("TweenService"), game:GetService("Lighting"), game:GetService("HttpService")
+local LP = Players.LocalPlayer
+
+local NS, CS = 60, 30
+local LAGGER_SPEED = 15
+local LAGGER_CARRY_SPEED = 24.5
+local speedMode, antiRagdollEnabled, infJumpEnabled = false, false, false
+local laggerToggled = false
+local laggerCarryToggled = false
+local laggerPhase = 0
+local medusaCounterEnabled = false
+local medusaResetEnabled = false
+local batCounterEnabled = false
+local unwalkEnabled = false
+local medusaDebounce, medusaLastUsed, dropActive = false, 0, false
+local autoLeftEnabled, autoRightEnabled = false, false
+local autoLeftSetVisual, autoRightSetVisual = nil, nil
+local tpLockEnabled = false
+local tpLockSetVisual = nil
+local batV2Enabled = false
+local batV2SetVisual = nil
+local setBatCounterVisual = nil
+local startBatCounter, stopBatCounter
+local antiLagEnabled = false
+local removeAccessoriesEnabled = false
+local antiLagDescConn = nil
+local stretchRezEnabled = false
+local stretchRezConn = nil
+local setStretchRezVisual = nil
+local espEnabled = false
+
+-- ESP Config
+local espBoxBaseWidth = 70
+local espBoxBaseHeight = 100
+local espScaleFactor = 25
+local espMinScale = 0.4
+local espMaxScale = 1.6
+
+local antiKickEnabled = false
+local antiKickSetVisual = nil
+local brainrotDetected = false
+local _antiKickConns = {}
+local _oldFire = nil
+
+local unwalkSavedAnimate = nil
+local _anyKeyListening = false
+local _lastKbSet = 0
+local autoTPEnabled = false
+local autoTPHeight = 20
+local autoTPConn = nil
+local setAutoTPVisual = nil
+local cursedResetRemote = nil
+local CURSED_RESET_GUID = "f888ee6e-c86d-46e1-93d7-0639d6635d42"
+local setInfJumpVisual = nil
+local mainFrame = nil
+local bgImage = nil
+local progressFill = nil
+local progressPct = nil
+local stealBarFrame = nil
+local _guiLocked = false
+
+-- ============================================================
+-- COULEURS THÈME CYAN NÉON (Remplaçant l'ancien thème)
+-- ============================================================
+local CYAN = Color3.fromRGB(0, 210, 255)
+local CYAN_LIGHT = Color3.fromRGB(120, 235, 255)
+local CYAN_DARK = Color3.fromRGB(12, 18, 28)
+local CYAN_GLOW = Color3.fromRGB(0, 180, 240)
+
+local TOGGLE_ON_COLOR = CYAN
+local TOGGLE_OFF_COLOR = Color3.fromRGB(35, 42, 55)
+local TEXT_ON = Color3.fromRGB(10, 15, 25)
+local TEXT_OFF = Color3.fromRGB(255, 255, 255)
+
+setCarryVisual = nil
+setLaggerVisual = nil
+setAutoSwingVisual = nil
+setBatCounterVisual = nil
+setAntiRagVisual = nil
+setMedusaVisual = nil
+setMedusaResetVisual = nil
+setUnwalkVisual = nil
+setAntiLagVisual = nil
+setStretchRezVisual = nil
+setAutoTPVisual = nil
+setSaturationVisual = nil
+setVoidModeVisual = nil
+setStretchRezV2Visual = nil
+setAntiKickVisual = nil
+setTranspVisual = nil
+setLockVisual = nil
+setMobVisual = nil
+setCircleBtnsVisual = nil
+setShapeVisual = nil
+setRectVisual = nil
+setInstaGrab = nil
+setInfJumpVisual = nil
+setEspVisual = nil
+local startESP, stopESP
+
+local uiScaleValue = 0.6
+local uiScaleObject = nil
+
+local tpLockConn = nil
+local tpLockPrevAutoRotate = nil
+local tpLockHitCD = false
+local TP_LOCK_SWING_CD = 0.08
+
+-- System ESP
+do
+	local _espEnabled  = false
+	local _espConn     = nil
+	local _espLastRun  = 0
+	local _hlCache     = {}
+	local _bbCache     = {}
+	local _trCache     = {}
+
+	local function clearESP()
+	    for _, hl in pairs(_hlCache) do pcall(function() hl:Destroy() end) end
+	    _hlCache = {}
+	    for _, bb in pairs(_bbCache) do pcall(function() bb:Destroy() end) end
+	    _bbCache = {}
+	    for _, lines in pairs(_trCache) do
+	        for _, ln in ipairs(lines) do
+	            pcall(function() ln.Visible = false; ln:Remove() end)
+	        end
+	    end
+	    _trCache = {}
+	end
+
+	local function _espMakeBillboard(head)
+	    local bb = Instance.new("BillboardGui")
+	    bb.Name        = "NexyHubbESPBB"
+	    bb.Size        = UDim2.new(0, 110, 0, 18)
+	    bb.StudsOffset = Vector3.new(0, 4.5, 0)
+	    bb.AlwaysOnTop = true
+	    bb.LightInfluence = 0
+	    bb.Adornee     = head
+	    bb.Parent      = head
+	    local lbl = Instance.new("TextLabel", bb)
+	    lbl.Size                   = UDim2.new(1, 0, 1, 0)
+	    lbl.BackgroundTransparency = 1
+	    lbl.Font                   = Enum.Font.GothamBold
+	    lbl.TextSize               = 11
+	    lbl.TextColor3             = CYAN
+	    lbl.TextStrokeTransparency = 0.3
+	    lbl.TextStrokeColor3       = Color3.fromRGB(0, 0, 0)
+	    lbl.TextXAlignment         = Enum.TextXAlignment.Center
+	    lbl.TextTruncate           = Enum.TextTruncate.AtEnd
+	    return bb, lbl
+	end
+
+	local function _espMakeTracers()
+	    if not (Drawing and type(Drawing.new) == "function") then return nil end
+	    local outer = Drawing.new("Line")
+	    outer.Color        = CYAN
+	    outer.Thickness    = 2.2
+	    outer.Transparency = 0.88
+	    outer.Visible      = false
+	    local mid = Drawing.new("Line")
+	    mid.Color        = CYAN
+	    mid.Thickness    = 1.2
+	    mid.Transparency = 0.72
+	    mid.Visible      = false
+	    local core = Drawing.new("Line")
+	    core.Color        = CYAN
+	    core.Thickness    = 0.6
+	    core.Transparency = 0.10
+	    core.Visible      = false
+	    return {outer, mid, core}
+	end
+
+	local function _espUpdate()
+	    local now = tick()
+	    if now - _espLastRun < 0.03 then return end
+	    _espLastRun = now
+	    if not _espEnabled then clearESP(); return end
+	    local myChar = LP.Character
+	    local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
+	    if not myRoot then return end
+	    local cam = workspace.CurrentCamera
+	    local mySP, myOn = cam:WorldToViewportPoint(myRoot.Position)
+	    local myVec = Vector2.new(mySP.X, mySP.Y)
+	    local plrSet = {}
+	    for _, p in ipairs(Players:GetPlayers()) do plrSet[p] = true end
+	    
+	    for plr in pairs(_hlCache) do
+	        if not plrSet[plr] then pcall(function() _hlCache[plr]:Destroy() end); _hlCache[plr] = nil end
+	    end
+	    for plr in pairs(_bbCache) do
+	        if not plrSet[plr] then pcall(function() _bbCache[plr]:Destroy() end); _bbCache[plr] = nil end
+	    end
+	    for plr in pairs(_trCache) do
+	        if not plrSet[plr] then
+	            for _, ln in ipairs(_trCache[plr]) do pcall(function() ln.Visible=false; ln:Remove() end) end
+	            _trCache[plr] = nil
+	        end
+	    end
+
+	    for _, plr in ipairs(Players:GetPlayers()) do
+	        if plr == LP then continue end
+	        local char = plr.Character
+	        if not char then
+	            if _hlCache[plr] then pcall(function() _hlCache[plr]:Destroy() end); _hlCache[plr] = nil end
+	            if _bbCache[plr] then pcall(function() _bbCache[plr]:Destroy() end); _bbCache[plr] = nil end
+	            if _trCache[plr] then for _, ln in ipairs(_trCache[plr]) do pcall(function() ln.Visible=false end) end end
+	            continue
+	        end
+	        local tRoot = char:FindFirstChild("HumanoidRootPart")
+	        local tHead = char:FindFirstChild("Head")
+	        local tHum  = char:FindFirstChildOfClass("Humanoid")
+	        if tRoot and tHead and tHum and tHum.Health > 0 then
+	            local hl = _hlCache[plr]
+	            if not hl or not hl.Parent or hl.Parent ~= char then
+	                if hl then pcall(function() hl:Destroy() end) end
+	                hl = Instance.new("Highlight")
+	                hl.Name                = "NexyHubbESP"
+	                hl.FillColor           = CYAN
+	                hl.FillTransparency    = 0.5
+	                hl.OutlineColor        = Color3.fromRGB(255, 255, 255)
+	                hl.OutlineTransparency = 0
+	                hl.DepthMode           = Enum.HighlightDepthMode.AlwaysOnTop
+	                hl.Adornee             = char
+	                hl.Parent              = char
+	                _hlCache[plr]          = hl
+	            end
+
+	            local bb = _bbCache[plr]
+	            if not bb or not bb.Parent or bb.Adornee ~= tHead then
+	                if bb then pcall(function() bb:Destroy() end) end
+	                local newBB, lbl = _espMakeBillboard(tHead)
+	                lbl.Text      = plr.DisplayName
+	                _bbCache[plr] = newBB
+	            end
+
+	            local espLines = _trCache[plr]
+	            if not espLines then
+	                espLines = _espMakeTracers()
+	                _trCache[plr] = espLines or {}
+	            end
+	            if espLines and #espLines > 0 then
+	                local sp, on = cam:WorldToViewportPoint(tRoot.Position)
+	                if on and sp.Z > 0 and myOn then
+	                    local tv = Vector2.new(sp.X, sp.Y)
+	                    for _, ln in ipairs(espLines) do ln.From=myVec; ln.To=tv; ln.Visible=true end
+	                else
+	                    for _, ln in ipairs(espLines) do ln.Visible=false end
+	                end
+	            end
+	        else
+	            if _hlCache[plr] then pcall(function() _hlCache[plr]:Destroy() end); _hlCache[plr] = nil end
+	            if _bbCache[plr] then pcall(function() _bbCache[plr]:Destroy() end); _bbCache[plr] = nil end
+	            if _trCache[plr] then for _, ln in ipairs(_trCache[plr]) do pcall(function() ln.Visible=false end) end end
+	        end
+	    end
+	end
+
+	startESP = function()
+	    if _espEnabled then return end
+	    _espEnabled = true
+	    if _espConn then _espConn:Disconnect() end
+	    _espConn = RunService.RenderStepped:Connect(_espUpdate)
+	end
+
+	stopESP = function()
+	    if not _espEnabled then return end
+	    _espEnabled = false
+	    if _espConn then _espConn:Disconnect(); _espConn = nil end
+	    clearESP()
+	end
+end
+
+local function findBat()
+    local char = LP.Character
+    if not char then return nil end
+    for _, name in ipairs({"Bat","Slap","Iron Slap","Gold Slap","Diamond Slap","Emerald Slap","NexyHubb Slap","Dark Matter Slap","Flame Slap","Nuclear Slap","Galaxy Slap","Glitched Slap"}) do
+        local t = char:FindFirstChild(name)
+        if t and t:IsA("Tool") then return t end
+    end
+    local bp = LP:FindFirstChildOfClass("Backpack")
+    if bp then
+        for _, name in ipairs({"Bat","Slap","Iron Slap","Gold Slap","Diamond Slap","Emerald Slap","NexyHubb Slap","Dark Matter Slap","Flame Slap","Nuclear Slap","Galaxy Slap","Glitched Slap"}) do
+            local t = bp:FindFirstChild(name)
+            if t and t:IsA("Tool") then
+                local hum = char:FindFirstChildOfClass("Humanoid")
+                if hum then pcall(function() hum:EquipTool(t) end) end
+                return t
+            end
+        end
+    end
+    for _, ch in ipairs(char:GetChildren()) do
+        if ch:IsA("Tool") and (ch.Name:lower():find("bat") or ch.Name:lower():find("slap")) then
+            return ch
+        end
+    end
+    return nil
+end
+
+local function getClosestPlayer()
+    local root = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+    if not root then return nil, math.huge end
+    local closest, minDist = nil, math.huge
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LP and plr.Character then
+            local tRoot = plr.Character:FindFirstChild("HumanoidRootPart")
+            if tRoot then
+                local d = (tRoot.Position - root.Position).Magnitude
+                if d < minDist then minDist = d; closest = plr end
+            end
+        end
+    end
+    return closest, minDist
+end
+
+-- Mobile Buttons Definition
+local mobBtnRefs = {}
+local mobGuiRef = nil
+
+local function buildMobileButtons()
+    local old = game:GetService("CoreGui"):FindFirstChild("NexyMobileButtons") or (LP:FindFirstChild("PlayerGui") and LP.PlayerGui:FindFirstChild("NexyMobileButtons"))
+    if old then old:Destroy() end
+
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "NexyMobileButtons"
+    gui.ResetOnSpawn = false
+    pcall(function() gui.Parent = game:GetService("CoreGui") end)
+    if not gui.Parent then gui.Parent = LP:WaitForChild("PlayerGui") end
+    mobGuiRef = gui
+
+    local container = Instance.new("Frame", gui)
+    container.Size = UDim2.new(0, 190, 0, 390)
+    container.Position = UDim2.new(1, -200, 0.2, 0)
+    container.BackgroundTransparency = 1
+
+    local grid = Instance.new("UIGridLayout", container)
+    grid.CellSize = UDim2.new(0, 88, 0, 44)
+    grid.CellPadding = UDim2.new(0, 8, 0, 8)
+    grid.HorizontalAlignment = Enum.HorizontalAlignment.Right
+
+    local buttonDefs = {
+        {id = "autoLeft", name = "AUTO\nLEFT"},
+        {id = "autoRight", name = "AUTO\nRIGHT"},
+        {id = "dropBr", name = "DROP\nBR"},
+        {id = "batV2", name = "BAT V2"},
+        {id = "desync", name = "DESYNC\nAIMBOT"},
+        {id = "lagger", name = "LAGGER"},
+        {id = "carrySpd", name = "CARRY\nSPD"},
+        {id = "instaReset", name = "INSTA\nRESET"}
+    }
+
+    for _, def in ipairs(buttonDefs) do
+        local btn = Instance.new("TextButton", container)
+        btn.BackgroundColor3 = TOGGLE_OFF_COLOR
+        btn.Text = def.name
+        btn.TextColor3 = TEXT_OFF
+        btn.Font = Enum.Font.GothamBold
+        btn.TextSize = 11
+
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+        local stroke = Instance.new("UIStroke", btn)
+        stroke.Color = CYAN
+        stroke.Thickness = 1.5
+
+        local active = false
+        btn.MouseButton1Click:Connect(function()
+            active = not active
+            -- VISUEL ACTIVÉ / DÉSACTIVÉ ULTRA VISIBLE
+            btn.BackgroundColor3 = active and TOGGLE_ON_COLOR or TOGGLE_OFF_COLOR
+            btn.TextColor3 = active and TEXT_ON
