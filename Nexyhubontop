@@ -1,0 +1,454 @@
+--========================================================
+-- NEXYHUBB / ZEYHUBB - FULL CYAN NEON EDITION
+--========================================================
+
+repeat task.wait() until game:IsLoaded()
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+local TS = game:GetService("TweenService")
+local Lighting = game:GetService("Lighting")
+local HS = game:GetService("HttpService")
+local LP = Players.LocalPlayer
+
+-- ============================================================
+-- COULEURS & THÈME CYAN NÉON
+-- ============================================================
+local CYAN = Color3.fromRGB(0, 210, 255)
+local CYAN_DARK = Color3.fromRGB(12, 16, 24)
+local CYAN_GLOW = Color3.fromRGB(0, 170, 230)
+local TOGGLE_ON_COLOR = CYAN
+local TOGGLE_OFF_COLOR = Color3.fromRGB(35, 40, 52)
+local TEXT_ON = Color3.fromRGB(10, 14, 20)
+local TEXT_OFF = Color3.fromRGB(255, 255, 255)
+
+-- Globales d'état
+local speedMode, antiRagdollEnabled, infJumpEnabled = false, false, false
+local autoLeftEnabled, autoRightEnabled = false, false
+local tpLockEnabled, batV2Enabled, bodyLockEnabled = false, false, false
+local laggerToggled, laggerCarryToggled = false, false
+local autoSwingEnabled, espEnabled = false, false
+local bodyLockRange = 40
+local NS, CS = 60, 30
+
+local mobBtnRefs = {}
+local mobGuiRef = nil
+local mobPosFile = "Nexy_MobBtns_Cyan.json"
+
+-- ============================================================
+-- 1. INTRO NÉON CYAN
+-- ============================================================
+task.spawn(function()
+    local pg = LP:WaitForChild("PlayerGui", 5)
+    if not pg then return end
+
+    local gui = Instance.new("ScreenGui", pg)
+    gui.Name = "NexyIntro"
+    gui.ResetOnSpawn = false
+
+    local frame = Instance.new("Frame", gui)
+    frame.Size = UDim2.fromScale(1,1)
+    frame.BackgroundColor3 = Color3.fromRGB(8, 10, 15)
+    frame.BackgroundTransparency = 0.15
+
+    local title = Instance.new("TextLabel", frame)
+    title.Size = UDim2.new(1,0,0,80)
+    title.Position = UDim2.new(0,0,0.42,0)
+    title.BackgroundTransparency = 1
+    title.Text = "NEXYHUBB"
+    title.Font = Enum.Font.GothamBlack
+    title.TextScaled = true
+    title.TextColor3 = CYAN
+
+    local stroke = Instance.new("UIStroke", title)
+    stroke.Color = Color3.fromRGB(255, 255, 255)
+    stroke.Thickness = 2
+
+    local ring = Instance.new("Frame", frame)
+    ring.AnchorPoint = Vector2.new(0.5,0.5)
+    ring.Position = UDim2.fromScale(0.5,0.5)
+    ring.Size = UDim2.fromOffset(260,260)
+    ring.BackgroundTransparency = 1
+    Instance.new("UICorner", ring).CornerRadius = UDim.new(1,0)
+    
+    local rs = Instance.new("UIStroke", ring)
+    rs.Thickness = 3
+    rs.Color = CYAN
+
+    TS:Create(ring, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {Rotation=360, Size=UDim2.fromOffset(320,320)}):Play()
+    TS:Create(title, TweenInfo.new(0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {TextTransparency=0.2}):Play()
+
+    task.wait(2.2)
+    _G.NEXY_INTRO_DONE = true
+    gui:Destroy()
+end)
+
+repeat task.wait() until _G.NEXY_INTRO_DONE == true
+
+-- ============================================================
+-- 2. FONCTIONS DE RECHERCHE & JOUEURS
+-- ============================================================
+local function findBat()
+    local char = LP.Character
+    if not char then return nil end
+    for _, name in ipairs({"Bat","Slap","Iron Slap","Gold Slap","Diamond Slap","Emerald Slap","NexyHubb Slap"}) do
+        local t = char:FindFirstChild(name)
+        if t and t:IsA("Tool") then return t end
+    end
+    local bp = LP:FindFirstChildOfClass("Backpack")
+    if bp then
+        for _, name in ipairs({"Bat","Slap","Iron Slap","Gold Slap","Diamond Slap","Emerald Slap","NexyHubb Slap"}) do
+            local t = bp:FindFirstChild(name)
+            if t and t:IsA("Tool") then
+                local hum = char:FindFirstChildOfClass("Humanoid")
+                if hum then pcall(function() hum:EquipTool(t) end) end
+                return t
+            end
+        end
+    end
+    return nil
+end
+
+local function getClosestPlayer()
+    local root = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+    if not root then return nil, math.huge end
+    local closest, minDist = nil, math.huge
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LP and plr.Character then
+            local tRoot = plr.Character:FindFirstChild("HumanoidRootPart")
+            if tRoot then
+                local d = (tRoot.Position - root.Position).Magnitude
+                if d < minDist then minDist = d; closest = plr end
+            end
+        end
+    end
+    return closest, minDist
+end
+
+-- ============================================================
+-- 3. ANTI-DIE / AUTO HEAL / RECOVERY
+-- ============================================================
+local antiDieConfig = { healthThreshold = 25, healAmount = 100 }
+local isDying = false
+
+local function superHeal(hum)
+    pcall(function()
+        if hum then
+            hum.Health = math.max(hum.Health, antiDieConfig.healAmount)
+        end
+    end)
+end
+
+local function monitorHealth()
+    local char = LP.Character
+    if not char then return end
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hum then return end
+    hum:GetPropertyChangedSignal("Health"):Connect(function()
+        if hum.Health <= 0 then
+            isDying = true
+            superHeal(hum)
+            hum:ChangeState(Enum.HumanoidStateType.Running)
+            task.wait(0.05)
+            local root = char:FindFirstChild("HumanoidRootPart")
+            if root then
+                root.CFrame = CFrame.new(root.Position + Vector3.new(0, 3, 0))
+                root.AssemblyLinearVelocity = Vector3.zero
+            end
+            task.wait(0.1)
+            isDying = false
+        end
+    end)
+end
+
+LP.CharacterAdded:Connect(function(char)
+    task.wait(0.1)
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if hum then hum.Health = hum.MaxHealth or 100 end
+    monitorHealth()
+end)
+
+if LP.Character then monitorHealth() end
+
+-- ============================================================
+-- 4. ESP SYSTEM (HIGHLIGHT + TRACERS)
+-- ============================================================
+do
+    local _espEnabled = false
+    local _espConn = nil
+    local _hlCache, _bbCache, _trCache = {}, {}, {}
+
+    local function clearESP()
+        for _, hl in pairs(_hlCache) do pcall(function() hl:Destroy() end) end; _hlCache = {}
+        for _, bb in pairs(_bbCache) do pcall(function() bb:Destroy() end) end; _bbCache = {}
+        for _, lines in pairs(_trCache) do
+            for _, ln in ipairs(lines) do pcall(function() ln.Visible = false; ln:Remove() end) end
+        end; _trCache = {}
+    end
+
+    local function _espUpdate()
+        if not _espEnabled then clearESP(); return end
+        local cam = workspace.CurrentCamera
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= LP and plr.Character then
+                local char = plr.Character
+                local tRoot = char:FindFirstChild("HumanoidRootPart")
+                if tRoot and char:FindFirstChildOfClass("Humanoid") then
+                    local hl = _hlCache[plr]
+                    if not hl or hl.Parent ~= char then
+                        hl = Instance.new("Highlight")
+                        hl.Name = "NexyCyanESP"
+                        hl.FillColor = CYAN
+                        hl.OutlineColor = Color3.fromRGB(255,255,255)
+                        hl.FillTransparency = 0.5
+                        hl.Adornee = char
+                        hl.Parent = char
+                        _hlCache[plr] = hl
+                    end
+                end
+            end
+        end
+    end
+
+    function startESP()
+        _espEnabled = true
+        if _espConn then _espConn:Disconnect() end
+        _espConn = RunService.RenderStepped:Connect(_espUpdate)
+    end
+
+    function stopESP()
+        _espEnabled = false
+        if _espConn then _espConn:Disconnect(); _espConn = nil end
+        clearESP()
+    end
+end
+
+-- ============================================================
+-- 5. BAT V2 & DESYNC AIMBOT
+-- ============================================================
+local batV2Conn = nil
+local function startBatV2()
+    if batV2Conn then return end
+    batV2Conn = RunService.Heartbeat:Connect(function()
+        if not batV2Enabled then return end
+        local target = getClosestPlayer()
+        if target and target.Character then
+            local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
+            local myRoot = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+            if tRoot and myRoot then
+                myRoot.AssemblyLinearVelocity = (tRoot.Position - myRoot.Position).Unit * 55
+            end
+        end
+    end)
+end
+
+local function stopBatV2()
+    if batV2Conn then batV2Conn:Disconnect(); batV2Conn = nil end
+    local root = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+    if root then root.AssemblyLinearVelocity = Vector3.zero end
+end
+
+local _bodyLockConn = nil
+local function startBodyLock()
+    if _bodyLockConn then _bodyLockConn:Disconnect() end
+    _bodyLockConn = RunService.RenderStepped:Connect(function()
+        if not bodyLockEnabled then return end
+        local target, dist = getClosestPlayer()
+        if target and target.Character and dist <= bodyLockRange then
+            local myRoot = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+            local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
+            if myRoot and tRoot then
+                myRoot.CFrame = CFrame.lookAt(myRoot.Position, Vector3.new(tRoot.Position.X, myRoot.Position.Y, tRoot.Position.Z))
+            end
+        end
+    end)
+end
+
+local function stopBodyLock()
+    if _bodyLockConn then _bodyLockConn:Disconnect(); _bodyLockConn = nil end
+end
+
+-- ============================================================
+-- 6. BOUTONS MOBILES (CÔTÉ DROIT - STYLE 1977.MP4)
+-- ============================================================
+local function buildMobileButtons()
+    local old = game:GetService("CoreGui"):FindFirstChild("NexyMobileButtons") or (LP:FindFirstChild("PlayerGui") and LP.PlayerGui:FindFirstChild("NexyMobileButtons"))
+    if old then old:Destroy() end
+
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "NexyMobileButtons"
+    gui.ResetOnSpawn = false
+    pcall(function() gui.Parent = game:GetService("CoreGui") end)
+    if not gui.Parent then gui.Parent = LP:WaitForChild("PlayerGui") end
+    mobGuiRef = gui
+
+    local container = Instance.new("Frame", gui)
+    container.Size = UDim2.new(0, 185, 0, 380)
+    container.Position = UDim2.new(1, -195, 0.22, 0)
+    container.BackgroundTransparency = 1
+
+    local grid = Instance.new("UIGridLayout", container)
+    grid.CellSize = UDim2.new(0, 86, 0, 46)
+    grid.CellPadding = UDim2.new(0, 8, 0, 8)
+    grid.HorizontalAlignment = Enum.HorizontalAlignment.Right
+
+    local buttonDefs = {
+        {id = "autoLeft", name = "AUTO\nLEFT", cb = function(st) autoLeftEnabled = st end},
+        {id = "autoRight", name = "AUTO\nRIGHT", cb = function(st) autoRightEnabled = st end},
+        {id = "dropBr", name = "DROP\nBR", cb = function(st) print("Drop Brainrot") end},
+        {id = "batV2", name = "BAT V2", cb = function(st) batV2Enabled = st; if st then startBatV2() else stopBatV2() end end},
+        {id = "desync", name = "DESYNC\nAIMBOT", cb = function(st) bodyLockEnabled = st; if st then startBodyLock() else stopBodyLock() end end},
+        {id = "lagger", name = "LAGGER", cb = function(st) laggerToggled = st end},
+        {id = "carrySpd", name = "CARRY\nSPD", cb = function(st) speedMode = st end},
+        {id = "instaReset", name = "INSTA\nRESET", cb = function() if LP.Character then LP.Character:BreakJoints() end end}
+    }
+
+    for _, def in ipairs(buttonDefs) do
+        local btn = Instance.new("TextButton", container)
+        btn.BackgroundColor3 = TOGGLE_OFF_COLOR
+        btn.Text = def.name
+        btn.TextColor3 = TEXT_OFF
+        btn.Font = Enum.Font.GothamBold
+        btn.TextSize = 11
+
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+        local stroke = Instance.new("UIStroke", btn)
+        stroke.Color = CYAN
+        stroke.Thickness = 1.5
+
+        local active = false
+        btn.MouseButton1Click:Connect(function()
+            active = not active
+            btn.BackgroundColor3 = active and CYAN or TOGGLE_OFF_COLOR
+            btn.TextColor3 = active and TEXT_ON or TEXT_OFF
+            def.cb(active)
+        end)
+
+        mobBtnRefs[def.id] = function(state)
+            active = state
+            btn.BackgroundColor3 = active and CYAN or TOGGLE_OFF_COLOR
+            btn.TextColor3 = active and TEXT_ON or TEXT_OFF
+        end
+    end
+end
+
+-- ============================================================
+-- 7. MENU PRINCIPAL (ZEYHUBB / NEXYHUBB SUR LA GAUCHE)
+-- ============================================================
+local function buildMainGui()
+    local old = game:GetService("CoreGui"):FindFirstChild("NexyMainUI") or (LP:FindFirstChild("PlayerGui") and LP.PlayerGui:FindFirstChild("NexyMainUI"))
+    if old then old:Destroy() end
+
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "NexyMainUI"
+    gui.ResetOnSpawn = false
+    pcall(function() gui.Parent = game:GetService("CoreGui") end)
+    if not gui.Parent then gui.Parent = LP:WaitForChild("PlayerGui") end
+
+    local main = Instance.new("Frame", gui)
+    main.Name = "MainFrame"
+    main.Size = UDim2.new(0, 320, 0, 480)
+    main.Position = UDim2.new(0.02, 0, 0.2, 0)
+    main.BackgroundColor3 = CYAN_DARK
+    main.Active = true
+    main.Draggable = true
+
+    Instance.new("UICorner", main).CornerRadius = UDim.new(0, 10)
+    local stroke = Instance.new("UIStroke", main)
+    stroke.Color = CYAN
+    stroke.Thickness = 2
+
+    -- Header
+    local header = Instance.new("Frame", main)
+    header.Size = UDim2.new(1, 0, 0, 45)
+    header.BackgroundTransparency = 1
+
+    local title = Instance.new("TextLabel", header)
+    title.Size = UDim2.new(1, -40, 1, 0)
+    title.Position = UDim2.new(0, 15, 0, 0)
+    title.BackgroundTransparency = 1
+    title.Text = "ZeyHubb"
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 20
+    title.TextXAlignment = Enum.TextXAlignment.Left
+
+    local subTitle = Instance.new("TextLabel", header)
+    subTitle.Size = UDim2.new(0, 100, 0, 20)
+    subTitle.Position = UDim2.new(1, -115, 0, 12)
+    subTitle.BackgroundTransparency = 1
+    subTitle.Text = "Serveurs VC"
+    subTitle.TextColor3 = CYAN
+    subTitle.Font = Enum.Font.GothamSemibold
+    subTitle.TextSize = 12
+
+    -- Scrolling Frame
+    local scroll = Instance.new("ScrollingFrame", main)
+    scroll.Size = UDim2.new(1, -16, 1, -55)
+    scroll.Position = UDim2.new(0, 8, 0, 50)
+    scroll.BackgroundTransparency = 1
+    scroll.ScrollBarThickness = 3
+    scroll.ScrollBarImageColor3 = CYAN
+
+    local layout = Instance.new("UIListLayout", scroll)
+    layout.Padding = UDim.new(0, 6)
+
+    local function addToggleRow(text, defaultState, callback)
+        local row = Instance.new("Frame", scroll)
+        row.Size = UDim2.new(1, 0, 0, 38)
+        row.BackgroundColor3 = Color3.fromRGB(20, 25, 36)
+        Instance.new("UICorner", row).CornerRadius = UDim.new(0, 6)
+
+        local lbl = Instance.new("TextLabel", row)
+        lbl.Size = UDim2.new(0.7, 0, 1, 0)
+        lbl.Position = UDim2.new(0, 10, 0, 0)
+        lbl.BackgroundTransparency = 1
+        lbl.Text = text
+        lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+        lbl.Font = Enum.Font.GothamSemibold
+        lbl.TextSize = 13
+        lbl.TextXAlignment = Enum.TextXAlignment.Left
+
+        local switch = Instance.new("TextButton", row)
+        switch.Size = UDim2.new(0, 24, 0, 24)
+        switch.Position = UDim2.new(1, -34, 0.5, -12)
+        switch.Text = ""
+        switch.BackgroundColor3 = defaultState and CYAN or Color3.fromRGB(50, 55, 68)
+        Instance.new("UICorner", switch).CornerRadius = UDim.new(1, 0)
+
+        local st = defaultState
+        switch.MouseButton1Click:Connect(function()
+            st = not st
+            switch.BackgroundColor3 = st and CYAN or Color3.fromRGB(50, 55, 68)
+            callback(st)
+        end)
+    end
+
+    -- Insertion des Toggles
+    addToggleRow("Auto Swing", autoSwingEnabled, function(v) autoSwingEnabled = v end)
+    addToggleRow("Bat V2", batV2Enabled, function(v)
+        batV2Enabled = v
+        if v then startBatV2() else stopBatV2() end
+        if mobBtnRefs.batV2 then mobBtnRefs.batV2(v) end
+    end)
+    addToggleRow("Anti-Ragdoll", antiRagdollEnabled, function(v) antiRagdollEnabled = v end)
+    addToggleRow("DESYNC AIMBOT", bodyLockEnabled, function(v)
+        bodyLockEnabled = v
+        if v then startBodyLock() else stopBodyLock() end
+        if mobBtnRefs.desync then mobBtnRefs.desync(v) end
+    end)
+    addToggleRow("TP Lock", tpLockEnabled, function(v) tpLockEnabled = v end)
+    addToggleRow("ESP Highlight & Tracers", espEnabled, function(v)
+        espEnabled = v
+        if v then startESP() else stopESP() end
+    end)
+
+    scroll.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 15)
+end
+
+-- Launch
+buildMobileButtons()
+buildMainGui()
+print("NexyHubb / ZeyHubb FULL Cyan Edition chargé avec succès !")
+ 
