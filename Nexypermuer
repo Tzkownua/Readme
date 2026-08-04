@@ -1,0 +1,569 @@
+--========================================================
+-- PREMIUM INTRO (BLUE EDITION - NOUVELLE ANIMATION)
+--========================================================
+_G.NEXY_INTRO_DONE = false
+
+task.spawn(function()
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "NexyIntro"
+    gui.ResetOnSpawn = false
+    pcall(function() gui.Parent = game:GetService("CoreGui") end)
+    if not gui.Parent then
+        gui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+    end
+
+    local mainFrame = Instance.new("Frame", gui)
+    mainFrame.Size = UDim2.fromScale(1, 1)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(8, 12, 20)
+    mainFrame.BackgroundTransparency = 1
+    mainFrame.BorderSizePixel = 0
+
+    local TweenService = game:GetService("TweenService")
+    TweenService:Create(mainFrame, TweenInfo.new(0.6), {BackgroundTransparency = 0.12}):Play()
+
+    -- Anneaux lumineux bleus (Cyber / Néon)
+    local ring1 = Instance.new("Frame", mainFrame)
+    ring1.AnchorPoint = Vector2.new(0.5, 0.5)
+    ring1.Position = UDim2.fromScale(0.5, 0.5)
+    ring1.Size = UDim2.fromOffset(120, 120)
+    ring1.BackgroundTransparency = 1
+    Instance.new("UICorner", ring1).CornerRadius = UDim.new(1, 0)
+    local stroke1 = Instance.new("UIStroke", ring1)
+    stroke1.Thickness = 3
+    stroke1.Color = Color3.fromRGB(0, 170, 255)
+
+    local ring2 = Instance.new("Frame", mainFrame)
+    ring2.AnchorPoint = Vector2.new(0.5, 0.5)
+    ring2.Position = UDim2.fromScale(0.5, 0.5)
+    ring2.Size = UDim2.fromOffset(280, 280)
+    ring2.BackgroundTransparency = 1
+    Instance.new("UICorner", ring2).CornerRadius = UDim.new(1, 0)
+    local stroke2 = Instance.new("UIStroke", ring2)
+    stroke2.Thickness = 1.5
+    stroke2.Color = Color3.fromRGB(0, 120, 220)
+
+    TweenService:Create(ring1, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
+        Size = UDim2.fromOffset(330, 330),
+        Rotation = 360
+    }):Play()
+
+    TweenService:Create(ring2, TweenInfo.new(2.4, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
+        Size = UDim2.fromOffset(270, 270),
+        Rotation = -360
+    }):Play()
+
+    -- Titre d'intro
+    local titleContainer = Instance.new("Frame", mainFrame)
+    titleContainer.AnchorPoint = Vector2.new(0.5, 0.5)
+    titleContainer.Position = UDim2.fromScale(0.5, 0.48)
+    titleContainer.Size = UDim2.new(0.8, 0, 0, 100)
+    titleContainer.BackgroundTransparency = 1
+
+    local title = Instance.new("TextLabel", titleContainer)
+    title.Size = UDim2.new(1, 0, 0, 70)
+    title.BackgroundTransparency = 1
+    title.Text = ""
+    title.Font = Enum.Font.GothamBlack
+    title.TextScaled = true
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+    local strokeTitle = Instance.new("UIStroke", title)
+    strokeTitle.Color = Color3.fromRGB(0, 170, 255)
+    strokeTitle.Thickness = 2.5
+
+    local subTitle = Instance.new("TextLabel", titleContainer)
+    subTitle.Size = UDim2.new(1, 0, 0, 25)
+    subTitle.Position = UDim2.new(0, 0, 0, 72)
+    subTitle.BackgroundTransparency = 1
+    subTitle.Text = "BLUE EDITION v2.0"
+    subTitle.Font = Enum.Font.GothamBold
+    subTitle.TextSize = 16
+    subTitle.TextColor3 = Color3.fromRGB(0, 190, 255)
+    subTitle.TextTransparency = 1
+
+    task.spawn(function()
+        local txt = "NEXYHUBB"
+        for i = 1, #txt do
+            title.Text = txt:sub(1, i)
+            task.wait(0.1)
+        end
+        TweenService:Create(subTitle, TweenInfo.new(0.4), {TextTransparency = 0}):Play()
+    end)
+
+    local sound = Instance.new("Sound", gui)
+    sound.SoundId = "rbxassetid://9118823105"
+    sound.Volume = 0.25
+    pcall(function() sound:Play() end)
+
+    task.wait(4)
+
+    local fadeTween = TweenService:Create(mainFrame, TweenInfo.new(0.6), {BackgroundTransparency = 1})
+    TweenService:Create(title, TweenInfo.new(0.6), {TextTransparency = 1}):Play()
+    TweenService:Create(subTitle, TweenInfo.new(0.6), {TextTransparency = 1}):Play()
+    fadeTween:Play()
+    fadeTween.Completed:Wait()
+
+    _G.NEXY_INTRO_DONE = true
+    gui:Destroy()
+end)
+
+-- ============================================================
+-- NEXYHUBB - SCRIPT ORIGINAL CONSERVÉ & BLUE EDITION
+-- ============================================================
+
+repeat task.wait() until game:IsLoaded()
+repeat task.wait() until _G.NEXY_INTRO_DONE == true
+
+local Players, RunService, UIS, TS, Lighting, HS = game:GetService("Players"), game:GetService("RunService"), game:GetService("UserInputService"), game:GetService("TweenService"), game:GetService("Lighting"), game:GetService("HttpService")
+local LP = Players.LocalPlayer
+
+local NS, CS = 60, 30
+local LAGGER_SPEED = 15
+local LAGGER_CARRY_SPEED = 24.5
+local speedMode, antiRagdollEnabled, infJumpEnabled = false, false, false
+local laggerToggled = false
+local laggerCarryToggled = false
+local laggerPhase = 0
+local medusaCounterEnabled = false
+local medusaResetEnabled = false
+local batCounterEnabled = false
+local unwalkEnabled = false
+local medusaDebounce, medusaLastUsed, dropActive = false, 0, false
+local autoLeftEnabled, autoRightEnabled = false, false
+local autoLeftSetVisual, autoRightSetVisual = nil, nil
+local tpLockEnabled = false
+local tpLockSetVisual = nil
+local batV2Enabled = false
+local batV2SetVisual = nil
+local setBatCounterVisual = nil
+local startBatCounter, stopBatCounter
+local antiLagEnabled = false
+local removeAccessoriesEnabled = false
+local antiLagDescConn = nil
+local stretchRezEnabled = false
+local stretchRezConn = nil
+local setStretchRezVisual = nil
+local espEnabled = false
+
+-- Configuración ESP
+local espBoxBaseWidth = 70
+local espBoxBaseHeight = 100
+local espScaleFactor = 25
+local espMinScale = 0.4
+local espMaxScale = 1.6
+
+local antiKickEnabled = false
+local antiKickSetVisual = nil
+local brainrotDetected = false
+local _antiKickConns = {}
+local _oldFire = nil
+
+local unwalkSavedAnimate = nil
+local _anyKeyListening = false
+local _lastKbSet = 0
+local autoTPEnabled = false
+local autoTPHeight = 20
+local autoTPConn = nil
+local setAutoTPVisual = nil
+local cursedResetRemote = nil
+local CURSED_RESET_GUID = "f888ee6e-c86d-46e1-93d7-0639d6635d42"
+local setInfJumpVisual = nil
+local mainFrame = nil
+local bgImage = nil
+local progressFill = nil
+local progressPct = nil
+local stealBarFrame = nil
+local _guiLocked = false
+
+-- ============================================================
+-- COULEURS BLEU & TOGGLES VERT / ROUGE
+-- ============================================================
+local BLUE = Color3.fromRGB(0, 170, 255)
+local BLUE_LIGHT = Color3.fromRGB(80, 200, 255)
+local BLUE_DARK = Color3.fromRGB(10, 20, 32)
+local BLUE_GLOW = Color3.fromRGB(0, 220, 255)
+
+local TOGGLE_ON_COLOR = Color3.fromRGB(0, 230, 100)   -- Vert quand activé
+local TOGGLE_OFF_COLOR = Color3.fromRGB(235, 50, 50)  -- Rouge quand désactivé
+
+setCarryVisual = nil
+setLaggerVisual = nil
+setAutoSwingVisual = nil
+setBatCounterVisual = nil
+setAntiRagVisual = nil
+setMedusaVisual = nil
+setMedusaResetVisual = nil
+setUnwalkVisual = nil
+setAntiLagVisual = nil
+setStretchRezVisual = nil
+setAutoTPVisual = nil
+setSaturationVisual = nil
+setVoidModeVisual = nil
+setStretchRezV2Visual = nil
+setAntiKickVisual = nil
+setTranspVisual = nil
+setLockVisual = nil
+setMobVisual = nil
+setCircleBtnsVisual = nil
+setShapeVisual = nil
+setRectVisual = nil
+setInstaGrab = nil
+setInfJumpVisual = nil
+setEspVisual = nil
+local startESP, stopESP
+
+local uiScaleValue = 0.6
+local uiScaleObject = nil
+
+local tpLockConn = nil
+local tpLockPrevAutoRotate = nil
+local tpLockHitCD = false
+local TP_LOCK_SWING_CD = 0.08
+
+-- ESP (Highlight + Name + Tracers)
+do
+	local _espEnabled  = false
+	local _espConn     = nil
+	local _espLastRun  = 0
+	local _hlCache     = {}
+	local _bbCache     = {}
+	local _trCache     = {}
+
+	local function clearESP()
+	    for _, hl in pairs(_hlCache) do pcall(function() hl:Destroy() end) end
+	    _hlCache = {}
+	    for _, bb in pairs(_bbCache) do pcall(function() bb:Destroy() end) end
+	    _bbCache = {}
+	    for _, lines in pairs(_trCache) do
+	        for _, ln in ipairs(lines) do
+	            pcall(function() ln.Visible = false; ln:Remove() end)
+	        end
+	    end
+	    _trCache = {}
+	end
+
+	local function _espMakeBillboard(head)
+	    local bb = Instance.new("BillboardGui")
+	    bb.Name        = "NexyHubbESPBB"
+	    bb.Size        = UDim2.new(0, 110, 0, 18)
+	    bb.StudsOffset = Vector3.new(0, 4.5, 0)
+	    bb.AlwaysOnTop = true
+	    bb.LightInfluence = 0
+	    bb.Adornee     = head
+	    bb.Parent      = head
+	    local lbl = Instance.new("TextLabel", bb)
+	    lbl.Size                   = UDim2.new(1, 0, 1, 0)
+	    lbl.BackgroundTransparency = 1
+	    lbl.Font                   = Enum.Font.GothamBold
+	    lbl.TextSize               = 11
+	    lbl.TextColor3             = BLUE
+	    lbl.TextStrokeTransparency = 0.3
+	    lbl.TextStrokeColor3       = Color3.fromRGB(0, 0, 0)
+	    lbl.TextXAlignment         = Enum.TextXAlignment.Center
+	    lbl.TextTruncate           = Enum.TextTruncate.AtEnd
+	    return bb, lbl
+	end
+
+	local function _espMakeTracers()
+	    if not (Drawing and type(Drawing.new) == "function") then return nil end
+	    local outer = Drawing.new("Line")
+	    outer.Color        = BLUE
+	    outer.Thickness    = 2.2
+	    outer.Transparency = 0.88
+	    outer.Visible      = false
+	    local mid = Drawing.new("Line")
+	    mid.Color        = BLUE
+	    mid.Thickness    = 1.2
+	    mid.Transparency = 0.72
+	    mid.Visible      = false
+	    local core = Drawing.new("Line")
+	    core.Color        = BLUE
+	    core.Thickness    = 0.6
+	    core.Transparency = 0.10
+	    core.Visible      = false
+	    return {outer, mid, core}
+	end
+
+	local function _espUpdate()
+	    local now = tick()
+	    if now - _espLastRun < 0.03 then return end
+	    _espLastRun = now
+	    if not _espEnabled then clearESP(); return end
+	    local myChar = LP.Character
+	    local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
+	    if not myRoot then return end
+	    local cam = workspace.CurrentCamera
+	    local mySP, myOn = cam:WorldToViewportPoint(myRoot.Position)
+	    local myVec = Vector2.new(mySP.X, mySP.Y)
+	    local plrSet = {}
+	    for _, p in ipairs(Players:GetPlayers()) do plrSet[p] = true end
+	    for plr in pairs(_hlCache) do
+	        if not plrSet[plr] then pcall(function() _hlCache[plr]:Destroy() end); _hlCache[plr] = nil end
+	    end
+	    for plr in pairs(_bbCache) do
+	        if not plrSet[plr] then pcall(function() _bbCache[plr]:Destroy() end); _bbCache[plr] = nil end
+	    end
+	    for plr in pairs(_trCache) do
+	        if not plrSet[plr] then
+	            for _, ln in ipairs(_trCache[plr]) do pcall(function() ln.Visible=false; ln:Remove() end) end
+	            _trCache[plr] = nil
+	        end
+	    end
+	    for _, plr in ipairs(Players:GetPlayers()) do
+	        if plr == LP then continue end
+	        local char = plr.Character
+	        if not char then
+	            if _hlCache[plr] then pcall(function() _hlCache[plr]:Destroy() end); _hlCache[plr] = nil end
+	            if _bbCache[plr] then pcall(function() _bbCache[plr]:Destroy() end); _bbCache[plr] = nil end
+	            if _trCache[plr] then for _, ln in ipairs(_trCache[plr]) do pcall(function() ln.Visible=false end) end end
+	            continue
+	        end
+	        local tRoot = char:FindFirstChild("HumanoidRootPart")
+	        local tHead = char:FindFirstChild("Head")
+	        local tHum  = char:FindFirstChildOfClass("Humanoid")
+	        if tRoot and tHead and tHum and tHum.Health > 0 then
+	            local hl = _hlCache[plr]
+	            if not hl or not hl.Parent or hl.Parent ~= char then
+	                if hl then pcall(function() hl:Destroy() end) end
+	                hl = Instance.new("Highlight")
+	                hl.Name                 = "NexyHubbESP"
+	                hl.FillColor           = BLUE
+	                hl.FillTransparency    = 0.62
+	                hl.OutlineColor        = BLUE
+	                hl.OutlineTransparency = 0
+	                hl.DepthMode           = Enum.HighlightDepthMode.AlwaysOnTop
+	                hl.Adornee             = char
+	                hl.Parent              = char
+	                _hlCache[plr]          = hl
+	            end
+	            local bb = _bbCache[plr]
+	            if not bb or not bb.Parent or bb.Adornee ~= tHead then
+	                if bb then pcall(function() bb:Destroy() end) end
+	                local newBB, lbl = _espMakeBillboard(tHead)
+	                lbl.Text      = plr.DisplayName
+	                _bbCache[plr] = newBB
+	            end
+	            local espLines = _trCache[plr]
+	            if not espLines then
+	                espLines = _espMakeTracers()
+	                _trCache[plr] = espLines or {}
+	            end
+	            if espLines and #espLines > 0 then
+	                local sp, on = cam:WorldToViewportPoint(tRoot.Position)
+	                if on and sp.Z > 0 and myOn then
+	                    local tv = Vector2.new(sp.X, sp.Y)
+	                    for _, ln in ipairs(espLines) do ln.From=myVec; ln.To=tv; ln.Visible=true end
+	                else
+	                    for _, ln in ipairs(espLines) do ln.Visible=false end
+	                end
+	            end
+	        else
+	            if _hlCache[plr] then pcall(function() _hlCache[plr]:Destroy() end); _hlCache[plr] = nil end
+	            if _bbCache[plr] then pcall(function() _bbCache[plr]:Destroy() end); _bbCache[plr] = nil end
+	            if _trCache[plr] then for _, ln in ipairs(_trCache[plr]) do pcall(function() ln.Visible=false end) end end
+	        end
+	    end
+	end
+
+	startESP = function()
+	    if _espEnabled then return end
+	    _espEnabled = true
+	    if _espConn then _espConn:Disconnect() end
+	    _espConn = RunService.RenderStepped:Connect(_espUpdate)
+	end
+
+	stopESP = function()
+	    if not _espEnabled then return end
+	    _espEnabled = false
+	    if _espConn then _espConn:Disconnect(); _espConn = nil end
+	    clearESP()
+	end
+end
+
+local function findBat()
+    local char = LP.Character
+    if not char then return nil end
+    for _, name in ipairs({"Bat","Slap","Iron Slap","Gold Slap","Diamond Slap","Emerald Slap","NexyHubb Slap","Dark Matter Slap","Flame Slap","Nuclear Slap","Galaxy Slap","Glitched Slap"}) do
+        local t = char:FindFirstChild(name)
+        if t and t:IsA("Tool") then return t end
+    end
+    local bp = LP:FindFirstChildOfClass("Backpack")
+    if bp then
+        for _, name in ipairs({"Bat","Slap","Iron Slap","Gold Slap","Diamond Slap","Emerald Slap","NexyHubb Slap","Dark Matter Slap","Flame Slap","Nuclear Slap","Galaxy Slap","Glitched Slap"}) do
+            local t = bp:FindFirstChild(name)
+            if t and t:IsA("Tool") then
+                local hum = char:FindFirstChildOfClass("Humanoid")
+                if hum then pcall(function() hum:EquipTool(t) end) end
+                return t
+            end
+        end
+    end
+    for _, ch in ipairs(char:GetChildren()) do
+        if ch:IsA("Tool") and (ch.Name:lower():find("bat") or ch.Name:lower():find("slap")) then
+            return ch
+        end
+    end
+    return nil
+end
+
+local function getClosestPlayer()
+    local root = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+    if not root then return nil, math.huge end
+    local closest, minDist = nil, math.huge
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LP and plr.Character then
+            local tRoot = plr.Character:FindFirstChild("HumanoidRootPart")
+            if tRoot then
+                local d = (tRoot.Position - root.Position).Magnitude
+                if d < minDist then minDist = d; closest = plr end
+            end
+        end
+    end
+    return closest, minDist
+end
+
+local function tpLockTryHit()
+    if tpLockHitCD then return end
+    tpLockHitCD = true
+    pcall(function()
+        local char = LP.Character
+        if char then
+            local bat = findBat()
+            if bat then
+                if bat.Parent ~= char then
+                    local hum = char:FindFirstChildOfClass("Humanoid")
+                    if hum then pcall(function() hum:EquipTool(bat) end) end
+                end
+                pcall(function() bat:Activate() end)
+                local ev = bat:FindFirstChildWhichIsA("RemoteEvent")
+                if ev then pcall(function() ev:FireServer() end) end
+            end
+        end
+    end)
+    task.delay(TP_LOCK_SWING_CD, function() tpLockHitCD = false end)
+end
+
+local function startTPLock()
+    if tpLockConn then tpLockConn:Disconnect() end
+    if autoLeftEnabled then autoLeftEnabled = false; stopAutoLeft(); if autoLeftSetVisual then autoLeftSetVisual(false) end end
+    if autoRightEnabled then autoRightEnabled = false; stopAutoRight(); if autoRightSetVisual then autoRightSetVisual(false) end end
+    if batV2Enabled then toggleBatV2() end
+    local hum = LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")
+    if hum then
+        if tpLockPrevAutoRotate == nil then tpLockPrevAutoRotate = hum.AutoRotate end
+        hum.AutoRotate = false
+    end
+    tpLockConn = RunService.Heartbeat:Connect(function()
+        if not tpLockEnabled then return end
+        local char = LP.Character; if not char then return end
+        local root = char:FindFirstChild("HumanoidRootPart"); if not root then return end
+        local hum = char:FindFirstChildOfClass("Humanoid"); if not hum then return end
+        if not char:FindFirstChildOfClass("Tool") then
+            local bat = findBat()
+            if bat then pcall(function() hum:EquipTool(bat) end) end
+        end
+        local target, targetDist = getClosestPlayer()
+        if not target then return end
+        local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
+        if not tRoot then return end
+        local targetPos = tRoot.Position + Vector3.new(0, 0.9, 0)
+
+        if sethiddenproperty then
+            pcall(function() sethiddenproperty(root, "PhysicsRepRootPart", tRoot) end)
+        end
+        if (root.Position - targetPos).Magnitude > 8 then
+            root.CFrame = CFrame.new(targetPos)
+        end
+        workspace.CurrentCamera.CFrame = CFrame.new(
+            workspace.CurrentCamera.CFrame.Position, tRoot.Position
+        )
+        tpLockTryHit()
+    end)
+end
+
+local function stopTPLock()
+    if tpLockConn then tpLockConn:Disconnect(); tpLockConn = nil end
+    tpLockHitCD = false
+    local c = LP.Character
+    local root = c and c:FindFirstChild("HumanoidRootPart")
+    if root then
+        root.AssemblyLinearVelocity = Vector3.zero
+        root.AssemblyAngularVelocity = Vector3.zero
+        if sethiddenproperty then pcall(function() sethiddenproperty(root, "PhysicsRepRootPart", nil) end) end
+    end
+    local hum = c and c:FindFirstChildOfClass("Humanoid")
+    if hum then
+        hum.AutoRotate = (tpLockPrevAutoRotate == nil) and true or tpLockPrevAutoRotate
+        hum.PlatformStand = false
+        pcall(function() hum:ChangeState(Enum.HumanoidStateType.GettingUp) end)
+    end
+    tpLockPrevAutoRotate = nil
+end
+
+local function toggleTPLock()
+    tpLockEnabled = not tpLockEnabled
+    if tpLockEnabled then
+        startTPLock()
+        if tpLockSetVisual then tpLockSetVisual(true) end
+        if mobBtnRefs.tpLock then mobBtnRefs.tpLock(true) end
+    else
+        stopTPLock()
+        if tpLockSetVisual then tpLockSetVisual(false) end
+        if mobBtnRefs.tpLock then mobBtnRefs.tpLock(false) end
+    end
+    return tpLockEnabled
+end
+
+-- ============================================================
+-- BAT V2
+-- ============================================================
+local AUTO_BAT_V2_SPEED = 60
+local AUTO_BAT_V2_DIST = 1.0
+local AUTO_BAT_V2_HEIGHT = 1.5
+local AUTO_BAT_V2_V_OFF = 0.0
+local AUTO_BAT_V2_HIT_DIST = 4.5
+local AUTO_BAT_V2_SWING_CD = 0.08
+
+local autoBatV2HitCooldown = false
+local batV2Conn = nil
+local batV2PrevAutoRotate = nil
+
+local function _v2FindBat()
+    local c = LP.Character
+    if c then
+        for _, v in ipairs(c:GetChildren()) do
+            if v:IsA("Tool") then return v end
+        end
+    end
+    local bp = LP:FindFirstChildOfClass("Backpack")
+    if bp then
+        for _, v in ipairs(bp:GetChildren()) do
+            if v:IsA("Tool") then return v end
+        end
+    end
+    return nil
+end
+
+local function _v2GetClosest()
+    local hrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return nil, math.huge end
+    local closest, bestDist = nil, math.huge
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LP and p.Character then
+            local tr = p.Character:FindFirstChild("HumanoidRootPart")
+            local ph = p.Character:FindFirstChildOfClass("Humanoid")
+            if tr and ph and ph.Health > 0 then
+                local d = (hrp.Position - tr.Position).Magnitude
+                if d < bestDist then bestDist = d; closest = p end
+            end
+        end
+    end
+    return closest, bestDist
+end
+
+local function _v2TrySwing()
+    if autoBatV2HitCooldown or not autoSwingEnabled then return end
+    autoBatV2HitCooldown = true
+    local char = LP.Character
+    if char then
+        local hum = char:FindFirstChildOfClass
