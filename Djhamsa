@@ -1,0 +1,429 @@
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+if CoreGui:FindFirstChild("AceDuelsUI") then
+    CoreGui.AceDuelsUI:Destroy()
+end
+
+-- ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "AceDuelsUI"
+ScreenGui.Parent = CoreGui
+ScreenGui.ResetOnSpawn = false
+
+-- Colors and Fonts
+local colors = {
+    MainBg = Color3.fromRGB(10, 10, 10),
+    SectionBg = Color3.fromRGB(18, 18, 18),
+    InputBg = Color3.fromRGB(25, 25, 25),
+    TextWhite = Color3.fromRGB(255, 255, 255),
+    TextGray = Color3.fromRGB(160, 160, 160),
+}
+
+-- Main Window (Smaller scale: 290 x 420)
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 290, 0, 420)
+MainFrame.Position = UDim2.new(0.5, -145, 0.5, -210)
+MainFrame.BackgroundColor3 = colors.MainBg
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 10)
+MainCorner.Parent = MainFrame
+
+-- 1. Top Bar
+local TopBar = Instance.new("Frame")
+TopBar.Size = UDim2.new(1, 0, 0, 55)
+TopBar.BackgroundTransparency = 1
+TopBar.Parent = MainFrame
+
+-- Logo
+local LogoFrame = Instance.new("Frame")
+LogoFrame.Size = UDim2.new(0, 38, 0, 38)
+LogoFrame.Position = UDim2.new(0, 12, 0, 8)
+LogoFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+LogoFrame.Parent = TopBar
+
+local LogoCorner = Instance.new("UICorner")
+LogoCorner.CornerRadius = UDim.new(0, 6)
+LogoCorner.Parent = LogoFrame
+
+local LogoText = Instance.new("TextLabel")
+LogoText.Size = UDim2.new(1, 0, 1, 0)
+LogoText.BackgroundTransparency = 1
+LogoText.Text = "A"
+LogoText.TextColor3 = colors.TextWhite
+LogoText.TextSize = 22
+LogoText.Font = Enum.Font.GothamBold
+LogoText.Parent = LogoFrame
+
+-- Title & Subtitle
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(0, 160, 0, 22)
+Title.Position = UDim2.new(0, 60, 0, 10)
+Title.BackgroundTransparency = 1
+Title.Text = "ACE DUELS"
+Title.TextColor3 = colors.TextWhite
+Title.TextSize = 18
+Title.Font = Enum.Font.GothamBold
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = TopBar
+
+local Subtitle = Instance.new("TextLabel")
+Subtitle.Size = UDim2.new(0, 160, 0, 18)
+Subtitle.Position = UDim2.new(0, 60, 0, 30)
+Subtitle.BackgroundTransparency = 1
+Subtitle.Text = "discord.gg/aceduels"
+Subtitle.TextColor3 = colors.TextGray
+Subtitle.TextSize = 11
+Subtitle.Font = Enum.Font.Gotham
+Subtitle.TextXAlignment = Enum.TextXAlignment.Left
+Subtitle.Parent = TopBar
+
+-- Top Right Buttons
+local function CreateTopBtn(text, xPos)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 35, 0, 20)
+    btn.Position = UDim2.new(1, -(xPos + 8), 0, 12)
+    btn.BackgroundColor3 = colors.InputBg
+    btn.Text = text
+    btn.TextColor3 = colors.TextWhite
+    btn.TextSize = 11
+    btn.Font = Enum.Font.GothamBold
+    btn.Parent = TopBar
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 5)
+    corner.Parent = btn
+    return btn
+end
+local LockBtn = CreateTopBtn("LOCK", 80)
+local MinimBtn = CreateTopBtn("-", 40)
+
+-- 2. Tabs
+local TabContainer = Instance.new("Frame")
+TabContainer.Size = UDim2.new(1, -16, 0, 30)
+TabContainer.Position = UDim2.new(0, 8, 0, 65)
+TabContainer.BackgroundTransparency = 1
+TabContainer.Parent = MainFrame
+
+local TabLayout = Instance.new("UIListLayout")
+TabLayout.FillDirection = Enum.FillDirection.Horizontal
+TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
+TabLayout.Padding = UDim.new(0, 4)
+TabLayout.Parent = TabContainer
+
+local tabs = {"MOVEMENT", "COMBAT", "KEYBINDS", "VISUALS", "AVARLAR"}
+local TabButtons = {}
+local function CreateTab(text, active)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 50, 1, 0)
+    btn.BackgroundColor3 = active and Color3.fromRGB(30, 30, 30) or Color3.fromRGB(20, 20, 20)
+    btn.Text = text
+    btn.TextColor3 = active and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 150, 150)
+    btn.TextSize = 10
+    btn.Font = Enum.Font.GothamBold
+    btn.Parent = TabContainer
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 5)
+    corner.Parent = btn
+    
+    if active then
+        local stroke = Instance.new("UIStroke")
+        stroke.Color = Color3.fromRGB(255,255,255)
+        stroke.Thickness = 1
+        stroke.Parent = btn
+    end
+    return btn
+end
+
+for i, tabName in ipairs(tabs) do
+    local isActive = (i == 1)
+    local btn = CreateTab(tabName, isActive)
+    TabButtons[tabName] = btn
+end
+
+-- 3. Content Area (Contains separate pages)
+local ContentFrame = Instance.new("Frame")
+ContentFrame.Size = UDim2.new(1, 0, 0, 300)
+ContentFrame.Position = UDim2.new(0, 0, 0, 100)
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.ClipsDescendants = true -- Ensures inactive pages are completely hidden
+ContentFrame.Parent = MainFrame
+
+-- Create Pages
+local ContentPages = {}
+local function CreatePage(name)
+    local page = Instance.new("ScrollingFrame")
+    page.Size = UDim2.new(1, 0, 1, 0)
+    page.BackgroundTransparency = 1
+    page.BorderSizePixel = 0
+    page.ScrollBarThickness = 2
+    page.ScrollBarImageColor3 = Color3.fromRGB(40, 40, 40)
+    page.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    page.Visible = false -- Default hidden
+    page.Parent = ContentFrame
+    
+    -- Layout for rows inside this page
+    local layout = Instance.new("UIListLayout")
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Padding = UDim.new(0, 5)
+    layout.Parent = page
+    
+    local padding = Instance.new("UIPadding")
+    padding.PaddingLeft = UDim.new(0, 8)
+    padding.PaddingRight = UDim.new(0, 8)
+    padding.PaddingTop = UDim.new(0, 5)
+    padding.Parent = page
+    
+    ContentPages[name] = page
+    return page
+end
+
+-- Helper: Create Headers
+local function CreateSection(title, parentPage)
+    local Section = Instance.new("Frame")
+    Section.Size = UDim2.new(1, 0, 0, 0)
+    Section.AutomaticSize = Enum.AutomaticSize.Y
+    Section.BackgroundTransparency = 1
+    Section.Parent = parentPage
+
+    local TitleLabel = Instance.new("TextLabel")
+    TitleLabel.Size = UDim2.new(1, 0, 0, 16)
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Text = title
+    TitleLabel.TextColor3 = colors.TextWhite
+    TitleLabel.TextSize = 10
+    TitleLabel.Font = Enum.Font.GothamBold
+    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TitleLabel.Parent = Section
+
+    local Layout = Instance.new("UIListLayout")
+    Layout.SortOrder = Enum.SortOrder.LayoutOrder
+    Layout.Padding = UDim.new(0, 4)
+    Layout.Parent = Section
+
+    return Section
+end
+
+-- Helper: Create Toggle
+local function CreateToggle(parentPage, label, defaultVal)
+    local Row = Instance.new("Frame")
+    Row.Size = UDim2.new(1, 0, 0, 28)
+    Row.BackgroundColor3 = colors.InputBg
+    Row.Parent = parentPage
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 5)
+    Corner.Parent = Row
+    
+    local LabelText = Instance.new("TextLabel")
+    LabelText.Size = UDim2.new(0, 120, 1, 0)
+    LabelText.Position = UDim2.new(0, 12, 0, 0)
+    LabelText.BackgroundTransparency = 1
+    LabelText.Text = label
+    LabelText.TextColor3 = colors.TextGray
+    LabelText.TextSize = 12
+    LabelText.Font = Enum.Font.Gotham
+    LabelText.TextXAlignment = Enum.TextXAlignment.Left
+    LabelText.Parent = Row
+    
+    local Switch = Instance.new("Frame")
+    Switch.Size = UDim2.new(0, 36, 0, 16)
+    Switch.Position = UDim2.new(1, -46, 0.5, -8)
+    Switch.BackgroundColor3 = defaultVal and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(60, 60, 60)
+    Switch.Parent = Row
+    
+    local SwitchCorner = Instance.new("UICorner")
+    SwitchCorner.CornerRadius = UDim.new(1, 0)
+    SwitchCorner.Parent = Switch
+    
+    local Knob = Instance.new("Frame")
+    Knob.Size = UDim2.new(0, 12, 0, 12)
+    Knob.Position = defaultVal and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6)
+    Knob.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+    Knob.Parent = Switch
+    
+    local KnobCorner = Instance.new("UICorner")
+    KnobCorner.CornerRadius = UDim.new(1, 0)
+    KnobCorner.Parent = Knob
+    
+    local isOn = defaultVal
+    Switch.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            isOn = not isOn
+            Switch.BackgroundColor3 = isOn and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(60, 60, 60)
+            Knob.Position = isOn and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6)
+        end
+    end)
+end
+
+-- Helper: Create Input/Textbox
+local function CreateInput(parentPage, label, value)
+    local Row = Instance.new("Frame")
+    Row.Size = UDim2.new(1, 0, 0, 28)
+    Row.BackgroundColor3 = colors.InputBg
+    Row.Parent = parentPage
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 5)
+    Corner.Parent = Row
+    
+    local LabelText = Instance.new("TextLabel")
+    LabelText.Size = UDim2.new(0, 120, 1, 0)
+    LabelText.Position = UDim2.new(0, 12, 0, 0)
+    LabelText.BackgroundTransparency = 1
+    LabelText.Text = label
+    LabelText.TextColor3 = colors.TextGray
+    LabelText.TextSize = 12
+    LabelText.Font = Enum.Font.Gotham
+    LabelText.TextXAlignment = Enum.TextXAlignment.Left
+    LabelText.Parent = Row
+    
+    local InputBox = Instance.new("TextBox")
+    InputBox.Size = UDim2.new(0, 40, 0, 20)
+    InputBox.Position = UDim2.new(1, -50, 0.5, -10)
+    InputBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    InputBox.TextColor3 = colors.TextWhite
+    InputBox.Text = value
+    InputBox.TextSize = 12
+    InputBox.Font = Enum.Font.Gotham
+    InputBox.Parent = Row
+    
+    local InputCorner = Instance.new("UICorner")
+    InputCorner.CornerRadius = UDim.new(0, 4)
+    InputCorner.Parent = InputBox
+end
+
+-- ==========================================
+-- POPULATE THE PAGES
+-- ==========================================
+
+-- MOVEMENT PAGE (Full replica)
+local MovePage = CreatePage("MOVEMENT")
+MovePage.Visible = true -- Starts visible
+
+local AutoSpeed = CreateSection("AUTO SPEED", MovePage)
+CreateToggle(AutoSpeed, "Auto Carry Speed", true)
+
+local NormalSpeed = CreateSection("NORMAL SPEED", MovePage)
+CreateInput(NormalSpeed, "Normal Speed", "59")
+CreateInput(NormalSpeed, "Carry Speed", "29")
+CreateInput(NormalSpeed, "Mode", "Carry")
+
+local LaggerSpeed = CreateSection("LAGGER SPEED", MovePage)
+CreateInput(LaggerSpeed, "Lagger Speed", "10")
+CreateInput(LaggerSpeed, "Lagger Carry Speed", "20")
+CreateInput(LaggerSpeed, "Mode", "Lagger")
+
+-- COMBAT PAGE (Placeholder)
+local CombatPage = CreatePage("COMBAT")
+local Sec1 = CreateSection("COMBAT SETTINGS", CombatPage)
+CreateToggle(Sec1, "Auto Aim", false)
+CreateToggle(Sec1, "Silent Aim", false)
+CreateInput(Sec1, "Aim FOV", "80")
+
+-- KEYBINDS PAGE (Placeholder)
+local KeybindsPage = CreatePage("KEYBINDS")
+local Sec2 = CreateSection("KEYBIND OPTIONS", KeybindsPage)
+CreateInput(Sec2, "Reload Key", "R")
+CreateInput(Sec2, "Interact Key", "E")
+
+-- VISUALS PAGE (Placeholder)
+local VisualsPage = CreatePage("VISUALS")
+local Sec3 = CreateSection("ESP SETTINGS", VisualsPage)
+CreateToggle(Sec3, "Box ESP", true)
+CreateToggle(Sec3, "Health Bar", true)
+
+-- AVARLAR PAGE (Placeholder)
+local AvarPage = CreatePage("AVARLAR")
+local Sec4 = CreateSection("AVALAR SETTINGS", AvarPage)
+CreateInput(Sec4, "Skin ID", "100")
+
+
+-- ==========================================
+-- TAB SWITCHING LOGIC (Real Page Switching)
+-- ==========================================
+local function SetActiveTab(activeBtn, tabName)
+    -- Highlight the clicked tab
+    for _, btn in pairs(TabButtons) do
+        btn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        btn.TextColor3 = Color3.fromRGB(150, 150, 150)
+        local stroke = btn:FindFirstChildOfClass("UIStroke")
+        if stroke then stroke:Destroy() end
+    end
+    activeBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    activeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    local newStroke = Instance.new("UIStroke")
+    newStroke.Color = Color3.fromRGB(255, 255, 255)
+    newStroke.Thickness = 1
+    newStroke.Parent = activeBtn
+
+    -- Hide all pages, then show the one that matches the tab
+    for pName, pFrame in pairs(ContentPages) do
+        pFrame.Visible = (pName == tabName)
+    end
+end
+
+for tabName, btn in pairs(TabButtons) do
+    btn.MouseButton1Click:Connect(function()
+        SetActiveTab(btn, tabName)
+    end)
+end
+
+-- 4. Footer
+local Footer = Instance.new("Frame")
+Footer.Size = UDim2.new(1, 0, 0, 20)
+Footer.Position = UDim2.new(0, 0, 1, -20)
+Footer.BackgroundTransparency = 1
+Footer.Parent = MainFrame
+
+local FooterText = Instance.new("TextLabel")
+FooterText.Size = UDim2.new(0, 80, 1, 0)
+FooterText.Position = UDim2.new(0, 10, 0, 0)
+FooterText.BackgroundTransparency = 1
+FooterText.Text = "TEIEGOST"
+FooterText.TextColor3 = Color3.fromRGB(80, 80, 80)
+FooterText.TextSize = 9
+FooterText.Font = Enum.Font.GothamBold
+FooterText.TextXAlignment = Enum.TextXAlignment.Left
+FooterText.Parent = Footer
+
+-- Make it draggable
+local dragging, dragInput, dragStart, startPos
+MainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+MainFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- Minimize functionality
+local isVisible = true
+MinimBtn.MouseButton1Click:Connect(function()
+    isVisible = not isVisible
+    ContentFrame.Visible = isVisible
+    TabContainer.Visible = isVisible
+    MinimBtn.Text = isVisible and "-" or "+"
+end)
+ 
