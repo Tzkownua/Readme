@@ -1,0 +1,23 @@
+════════════════════════════════════════════════════════════
+  Lookup Me - Résultats de recherche
+════════════════════════════════════════════════════════════
+
+  ╔══ 📂 
+  ╠═══════════════════════════════════════════════════════
+  ║  ┌─ 📄 Fiche #1
+  ║  │  📁 
+  ║  │     ⚥ genre            : M
+  ║  │     👤 Nom             : KAZOUR
+  ║  │     📧 email           : lindayousra.2009@gmail.com
+  ║  │     📞 phone           : 07 83 43 29 46
+  ║  │  📁 enfant_associé
+  ║  │     ⚥ genre           : M
+  ║  │     👤 Prénom          : HOUDAYFA 
+  ║  │     🎂 birthdate       :  04/08/2011
+  ║  │  📁 adresse_postale
+  ║  │     📍 address         : 7 SQUARE PEDRO FLORES
+  ║  │     📍 city            :  RENNES
+
+  ║  │     📍 postal_code     : 
+  ║  │ └──────────────────────────────────────────────────
+
